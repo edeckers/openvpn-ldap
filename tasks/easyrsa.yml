@@ -1,0 +1,60 @@
+- name: Clone EasyRSA-config
+  become:  true
+  command: cp -r /usr/share/easy-rsa /tmp
+  when: override_easyrsa_config
+
+- name: Set CA information
+  become: true
+  lineinfile:
+   dest:   /tmp/easy-rsa/vars
+   state:  present
+   regexp: '^export {{item.key}}'
+   line:   'export {{item.key}}="{{item.value}}"'
+  with_items:
+   - key: "KEY_COUNTRY"
+     value: "{{ ca_country }}"
+   - key: "KEY_PROVINCE"
+     value: "{{ ca_province }}"
+   - key: "KEY_CITY"
+     value: "{{ ca_city }}"
+   - key: "KEY_ORG"
+     value: "{{ ca_organization }}"
+   - key: "KEY_EMAIL"
+     value: "{{ ca_email }}"
+   - key: "KEY_OU"
+     value: "{{ ca_ou }}"
+  when: override_easyrsa_config
+
+- name: Copy certficate and key generator script to server
+  become: true
+  copy:
+   src:  ../files/generate-keys-and-certs
+   dest: /tmp/easy-rsa/generate-keys-and-certs
+   mode: u=rwx,g=,o=
+  when: override_easyrsa_config
+
+- name: Generate certificates and keys
+  become:  true
+  command: /tmp/easy-rsa/generate-keys-and-certs
+  when: override_easyrsa_config
+
+- name: Move keys and certificates to OpenVPN config
+  become: true
+  copy:
+   remote_src: true
+   backup:     yes
+   src:        "/tmp/easy-rsa/keys/{{item}}"
+   dest:       "/etc/openvpn/"
+  with_items:
+   - ca.crt
+   - ca.key
+   - server.crt
+   - server.key
+   - dh2048.pem
+  when: override_easyrsa_config
+
+- name: Make CA-certificate available over HTTP
+  file:
+   src:  /etc/openvpn/ca.crt
+   dest: /usr/share/phpldapadmin/htdocs/ca.crt
+   state: link

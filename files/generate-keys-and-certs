@@ -1,0 +1,11 @@
+#!/bin/bash
+
+cd /tmp/easy-rsa
+chmod +rwx * 
+source ./vars 
+./clean-all
+./pkitool --batch --initca
+
+./pkitool --batch --server server
+
+./build-dh

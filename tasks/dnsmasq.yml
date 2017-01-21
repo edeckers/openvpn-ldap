@@ -1,0 +1,9 @@
+- name: Override DNSMasq settings
+  template:
+   src: ../templates/dnsmasq-overrides.conf
+   dest: /etc/dnsmasq.d/overrides.conf
+  when: override_dnsmasq_config
+
+- name: Restart DNSMasq
+  service: name=dnsmasq state=restarted
+  when: override_dnsmasq_config

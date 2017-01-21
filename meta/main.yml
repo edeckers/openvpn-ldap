@@ -1,0 +1,15 @@
+---
+galaxy_info:
+  author: Ely Deckers
+  description: Installs an OpenLDAP backed OpenVPN-server
+  license: GPLv3
+  min_ansible_version: 1.9
+  platforms:
+  - name: Ubuntu
+    versions:
+    - all
+  galaxy_tags:
+    - ldap
+    - vpn
+    - installer
+    - web

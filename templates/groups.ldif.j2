@@ -1,0 +1,36 @@
+dn:                    {{ ldap_dn }}
+description:           {{ ldap_organization_desc }}
+o:                     {{ ldap_organization }}
+objectClass:           top
+objectClass:           dcObject
+objectClass:           organization
+structuralObjectClass: organization
+
+# administrator
+dn:                    cn=admin,{{ ldap_dn }}
+objectClass:           simpleSecurityObject
+objectClass:           organizationalRole
+cn:                    admin
+description:           LDAP administrator
+userPassword:          {{ ldap_ssha_rootpw }}
+structuralObjectClass: organizationalRole
+
+dn:                    ou=users,{{ ldap_dn }}
+ou:                    users
+description:           LDAP Users
+objectClass:           organizationalUnit
+objectClass:           top
+structuralObjectClass: organizationalUnit
+
+dn:                    ou=groups,{{ ldap_dn }}
+ou:                    groups
+description:           LDAP User groups
+objectClass:           organizationalUnit
+objectClass:           top
+structuralObjectClass: organizationalUnit
+
+dn: cn=vpn,ou=groups,{{ ldap_dn }}
+cn: vpn
+gidnumber: 500
+objectclass: posixGroup
+objectclass: top

@@ -1,0 +1,5 @@
+<?php
+$servers->setValue('server','host','{{ phpldapadmin_fqdn }}');
+$servers->setValue('server','base',array('{{ ldap_dn }}'));
+$servers->setValue('login','bind_id','cn=admin,{{ ldap_dn }}');
+

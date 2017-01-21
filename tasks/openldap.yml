@@ -1,0 +1,89 @@
+- name: Generate SSHA rootpw
+  become: true
+  command: "slappasswd -h {SSHA} -s {{ ldap_rootpw }}"
+  register: generate_ldap_ssha_rootpw_result
+  when: override_openldap_config
+
+- name: Remove default OpenLDAP configuration
+  become: true
+  file: path=/etc/ldap/slapd.d state=absent
+  when: override_openldap_config
+
+- name: Remove old OpenLDAP database
+  become: true
+  file: path=/var/lib/ldap state=absent
+  when: override_openldap_config
+
+- name: Recreate OpenLDAP database path
+  become: true
+  file: path=/var/lib/ldap state=directory owner=openldap group=openldap
+  when: override_openldap_config
+
+- name: Configure OpenLDAP
+  become: true
+  template:
+   src: ../templates/slapd.conf.j2
+   dest: /etc/ldap/slapd.conf
+  when: override_openldap_config
+  vars:
+   - ldap_ssha_rootpw: "{{ generate_ldap_ssha_rootpw_result.stdout }}"
+
+- name: Restart OpenLDAP
+  service: name=slapd state=restarted
+  when: override_openldap_config
+
+- name: Set OpenLDAP database owner
+  become: true
+  file: path=/var/lib/ldap state=directory owner=openldap group=openldap recurse=yes
+  when: override_openldap_config
+
+- name: Create OpenLDAP configuration directory
+  become: true
+  file: path=/etc/ldap/slapd.d state=directory owner=openldap group=openldap
+  when: override_openldap_config
+
+- name: Convert OpenLDAP configuration
+  become: true
+  command: slaptest -f /etc/ldap/slapd.conf -F /etc/ldap/slapd.d 
+  when: override_openldap_config
+
+- name: Change ownership of slap.d files
+  become: true
+  file: path=/etc/ldap/slapd.d state=directory owner=openldap group=openldap recurse=yes
+  when: override_openldap_config
+
+- name: Remove flat file OpenLDAP configuration
+  become: true
+  file: path=/etc/ldap/slapd.conf state=absent
+  when: override_openldap_config
+
+- name: Restart OpenLDAP
+  service: name=slapd state=restarted
+  when: override_openldap_config
+
+- name: Copy OpenLDAP initial group configuration
+  become: true
+  template:
+   src: "../templates/groups.ldif.j2"
+   dest: "/tmp/groups.ldif"
+  when: override_openldap_config
+  vars:
+   - ldap_ssha_rootpw: "{{ generate_ldap_ssha_rootpw_result.stdout }}"
+
+- name: Stop OpenLDAP
+  service: name=slapd state=stopped
+  when: override_openldap_config
+
+- name: Add groups to OpenLDAP
+  become: true
+  command: slapadd -b "{{ ldap_dn }}" -v -l /tmp/groups.ldif
+  when: override_openldap_config
+
+- name: Start OpenLDAP
+  service: name=slapd state=started
+  when: override_openldap_config
+
+- name: Set OpenLDAP database owner
+  become: true
+  file: path=/var/lib/ldap state=directory owner=openldap group=openldap recurse=yes
+  when: override_openldap_config

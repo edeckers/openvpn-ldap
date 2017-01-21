@@ -1,0 +1,39 @@
+- name: Change Apache listening port 80 to 8080
+  replace:
+    dest: /etc/apache2/ports.conf
+    regexp: '(NameVirtualHost|Listen)\s+80\s*$'
+    replace: '\1 127.0.0.1:8080'
+  when: override_openvpn_config
+
+- name: Change Apache listening port 443 to 10443
+  replace:
+    dest: /etc/apache2/ports.conf
+    regexp: '(NameVirtualHost|Listen)\s+443\s*$'
+    replace: '\1 127.0.0.1:10443'
+  when: override_openvpn_config
+
+- name: Copy phpLDAPAdmin configuration file
+  template:
+   src: ../templates/config.ext.php.j2
+   dest: /usr/share/phpldapadmin/config/config.ext.php
+   mode: u=rw,g=rx,o=rx
+
+- name: Include phpLDAPAdmin configuration file
+  lineinfile:
+   dest: /usr/share/phpldapadmin/config/config.php
+   line: 'require "/usr/share/phpldapadmin/config/config.ext.php";'
+   state: present
+  when: override_phpldapadmin_config
+
+- name: Change phpLDAPAdmin Apache configuration
+  template:
+   src: ../templates/phpldapadmin.conf.j2
+   dest: /etc/apache2/conf-available/phpldapadmin.conf
+   mode: u=rw,g=r,o=r
+  when: override_phpldapadmin_config
+
+- name: Restart Apache
+  service: name=apache2 state=restarted
+  when: override_phpldapadmin_config
+
+

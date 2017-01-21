@@ -1,0 +1,27 @@
+<LDAP>
+	# LDAP server URL
+	URL		ldap://localhost
+
+	# Bind DN (If your LDAP server doesn't support anonymous binds)
+	BindDN		"cn=admin,{{ ldap_dn }}"
+
+	# Bind Password
+	Password	"{{ ldap_rootpw }}"
+
+	# Network timeout (in seconds)
+	Timeout		15
+</LDAP>
+
+<Authorization>
+	# Base DN
+	BaseDN		"{{ ldap_dn }}"
+
+	# User Search Filter
+	SearchFilter	"(&(uid=%u))"
+
+	# Require Group Membership
+	RequireGroup	false
+
+	# Add non-group members to a PF table (disabled)
+	#PFTable	ips_vpn_users
+</Authorization>

@@ -1,0 +1,16 @@
+override_openldap_config:     yes
+override_easyrsa_config:      yes
+override_openvpn_config:      yes
+override_dnsmasq_config:      yes
+override_phpldapadmin_config: yes
+ca_country:                  "NL"
+ca_province:                 "UT"
+ca_city:                     "MyCity"
+ca_organization:             "MyOrganization"
+ca_email:                    "my@email.tld"
+ca_ou:                       "MyOrganizationalUnit"
+ldap_dn:                     "dc=example,dc=com"
+ldap_organization:           "MyOrganization"
+ldap_organization_desc:      "Description of MyOrganization"
+dnsmasq_dns_1:               "8.8.8.8"
+dnsmasq_dns_2:               "8.8.4.4"

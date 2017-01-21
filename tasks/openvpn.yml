@@ -1,0 +1,71 @@
+- name: Ensure /etc/openvpn/auth dir exists
+  become: true
+  file: path=/etc/openvpn/auth state=directory
+  when: override_openvpn_config
+
+- name: Configure OpenVPN Auth LDAP
+  become: true
+  template:
+   src: ../templates/auth-ldap.conf.j2
+   dest: /etc/openvpn/auth/auth-ldap.conf
+  when: override_openvpn_config
+
+- name: Configure OpenVPN
+  become: true
+  template:
+   src: ../templates/server.conf.j2
+   dest: /etc/openvpn/server.conf
+  when: override_openvpn_config
+
+- name: Copy OpenVPN IP table installation script
+  become: true
+  copy:
+   src: ../files/install_openvpn_iptables
+   dest: /usr/local/bin/install_openvpn_iptables
+   mode: u=rwx,g=rx,o=rx
+  when: override_openvpn_config
+
+- name: Run OpenVPN IP table installation script
+  become: true
+  command: /usr/local/bin/install_openvpn_iptables
+  when: override_openvpn_config
+
+- name: Add OpenVPN IP table installation script to rc.local
+  become: true
+  lineinfile:
+   dest: /etc/rc.local
+   line: "if [ -x /usr/local/bin/install_openvpn_iptables ]; then /usr/local/bin/install_openvpn_iptables; fi"
+   insertbefore: "^exit 0"
+   state: present
+  when: override_openvpn_config
+
+- name: Enable IP forwarding
+  become: true
+  command: echo "1" > /proc/sys/net/ipv4/ip_forward
+  when: override_openvpn_config
+
+- name: Persist IP forwarding
+  become: true
+  lineinfile:
+   dest: /etc/sysctl.conf
+   line: "net.ipv4.ip_forward=1"
+   state: present
+  when: override_openvpn_config
+
+- name: Restart openvpn
+  become: true
+  service: name=openvpn state=restarted
+  when: override_openvpn_config
+
+- name: Read CA certificate into variable
+  become: true
+  command: cat /etc/openvpn/ca.crt
+  register: ca_certificate
+
+- name: Make an example OVPN-profile available over HTTP
+  template:
+   src: ../templates/client.ovpn.j2
+   dest: /usr/share/phpldapadmin/htdocs/client.ovpn
+  when: override_openvpn_config
+  vars:
+   - ca_certificate_content: "{{ ca_certificate.stdout }}"

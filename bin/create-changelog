@@ -1,0 +1,18 @@
+#!/bin/bash
+# Based on work by Andrey Nikishaev (http://stackoverflow.com/a/8791165)
+
+git tag -l | sort -u -r -V | while read TAG ; do
+    if [ $NEXT ]; then
+     echo "## $NEXT (`git log -1 --pretty=format:%ad --date=short $NEXT`)" 
+     echo 
+     GIT_PAGER=cat git log --no-merges --format=" * %s" $TAG..$NEXT~1
+     echo
+    fi
+
+    NEXT=$TAG
+done
+
+FIRST=$(git tag -l | head -1)
+echo "## $FIRST (`git log -1 --pretty=format:%ad --date=short $FIRST`)" 
+echo
+GIT_PAGER=cat git log --no-merges --format=" * %s" $FIRST~1
